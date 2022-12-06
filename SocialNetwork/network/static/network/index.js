@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('#profile').style.display = 'none';    
-    window.history.pushState('The Network', 'The Network', 'http://127.0.0.1:8000/');
     if(document.getElementById('following')) {
         document.getElementById('following').addEventListener('click', () => load_posts("/followed",1));          
     } else {
@@ -9,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     load_posts("",1);
 });
 
+//load posted post by users
 function load_posts(addon,page) {        
     if (addon.includes("?")) {
         addon+=`&page=${page}`;
@@ -26,10 +26,10 @@ function load_posts(addon,page) {
     })
 }
 
+//limit 10 post per index page if more than 10 put it onnext page
 function build_paginator(addon,page,num_pages) {
     page_list = document.getElementById('pagination');
     page_list.innerHTML="";
-
     const previous = document.createElement('li');
     if(page==1){
         previous.className = "page-item disabled";    
@@ -37,12 +37,12 @@ function build_paginator(addon,page,num_pages) {
         previous.className = "page-item";    
         previous.addEventListener('click', () => load_posts(addon,page-1));
     }        
-    const page_a_previous = document.createElement('a');
-    page_a_previous.className="page-link";
+    const previous_page = document.createElement('a');
+    previous_page.className="page-link";
 
-    page_a_previous.href="#";
-    page_a_previous.innerHTML="Previous";
-    previous.append(page_a_previous);    
+    previous_page.href="#";
+    previous_page.innerHTML="Previous";
+    previous.append(previous_page);    
     page_list.append(previous);
     
     for (let item=1; item<=num_pages; item++) {
@@ -69,15 +69,16 @@ function build_paginator(addon,page,num_pages) {
         next.className = "page-item";    
         next.addEventListener('click', () => load_posts(addon,page+1));
     }   
-    const page_a_next = document.createElement('a');
-    page_a_next.className="page-link"; 
-    page_a_next.href="#";
-    page_a_next.innerHTML="Next";
-    next.append(page_a_next);
+    const next_page = document.createElement('a');
+    next_page.className="page-link"; 
+    next_page.href="#";
+    next_page.innerHTML="Next";
+    next.append(next_page);
     page_list.append(next);
     
 }
 
+//open profile when clicked put window on top
 function show_profile(creator_id) {
     load_posts(`?profile=${creator_id}`,1);
     document.querySelector('#newPost').style.display = 'none';  
@@ -101,21 +102,21 @@ function show_profile(creator_id) {
         }
     })
     window.scrollTo(0,0);
-    
 }
 
+//publish post and update the index page
 function build_post(post) {
     const post_card = document.createElement('div');
-    post_card.className = "card col col-6";
+    post_card.className = "card col col-6 bg-dark m-2";
 
     const header = document.createElement('div');
-    header.className = "card-header profile";
+    header.className = "card-header profile bg-dark text-white";
     header.innerHTML = post.creator_username;
     post_card.append(header);
     header.addEventListener('click', () => show_profile(post.creator_id) );
 
     const card_body = document.createElement('div');
-    card_body.className = "card-body";
+    card_body.className = "card-body bg-secondary text-white";
     card_body.id = `post_body_${post.id}`;
     
     const text = document.createElement('p');
@@ -131,13 +132,13 @@ function build_post(post) {
 
     const like_icon = document.createElement('i');
     like_icon.id = `like-icon-${post.id}`;
-    let heart_bg;
+    let like_bg;
     if(post.liked) {
-        heart_bg="";
+        like_bg="";
     } else {
-        heart_bg="-empty";
+        like_bg="-empty";
     }
-    like_icon.className = `icon-heart${heart_bg} col-auto`;
+    like_icon.className = `bx bx-like ${like_bg} col-auto`;
     if(document.getElementById('following')) {
         like_icon.addEventListener('click', () => update_like(post));        
     } else {
@@ -145,8 +146,6 @@ function build_post(post) {
     }
     
     likes_row.append(like_icon);
-
-
     const likes = document.createElement('div');
     likes.id = `likes-amount-${post.id}`;
     likes.className = "card-text likes col-auto ";
@@ -155,17 +154,17 @@ function build_post(post) {
 
     const likes_text = document.createElement('div');
     likes_text.className = "card-text likes_text col-auto ";
-    likes_text.innerHTML = " like(s)";
+    likes_text.innerHTML = "likes";
     likes_row.append(likes_text);
 
     const date = document.createElement('div');
-    date.className = "blockquote-footer col-auto";
+    date.className = "blockquote-footer text-white col-auto ";
     date.innerHTML = post.created_date;
     likes_row.append(date);
 
     if(post.editable) {
         const edit = document.createElement('button');
-        edit.className = "card-text col-auto btn btn-link";
+        edit.className = "card-text col-auto btn btn-link text-white";
         edit.innerHTML = "Edit";
         edit.addEventListener('click', () => edit_post(post) );
         likes_row.append(edit);
@@ -181,19 +180,21 @@ function build_post(post) {
     document.querySelector('#posts').append(row);
 }
 
+//update like or unlike counter
 function update_like(post) {
     fetch(`/post/${post.id}/update_like`)
     .then(response => response.json())
     .then(response => {
         if (response.liked) {
-            document.getElementById(`like-icon-${post.id}`).className = "icon-heart col-auto";
+            document.getElementById(`like-icon-${post.id}`).className = "bx bxs-like col-auto";
         } else {
-            document.getElementById(`like-icon-${post.id}`).className = "icon-heart-empty col-auto";
+            document.getElementById(`like-icon-${post.id}`).className = "bx bx-like col-auto";
         }
         document.getElementById(`likes-amount-${post.id}`).innerHTML=response.newAmount;
     })
 }
 
+//update follow or unfollowed
 function update_follow(profile_id) {
     fetch(`/profile/${profile_id}/update_follow`)
     .then(response => response.json())
@@ -208,6 +209,7 @@ function update_follow(profile_id) {
     })
 }
 
+//edit post with put parameters and edit without loading the page
 function edit_post(post) {
     const likes_row = document.getElementById(`likes_row_${post.id}`);    
     const content = document.getElementById(`content_${post.id}`);
@@ -217,11 +219,10 @@ function edit_post(post) {
     const edit_buttons_row = document.createElement('div');
     edit_buttons_row.className = "row";
 
-
     const save_button = document.createElement('button');
-    save_button.className = "btn btn-info col-auto";
+    save_button.className = "btn btn-dark col-auto";
     save_button.type = "button";
-    save_button.innerHTML = "Save it";
+    save_button.innerHTML = "Save";
     save_button.addEventListener('click', () => {
         const new_content = document.getElementById(`new_content_${post.id}`).value;
         fetch(`/save_post`, {
@@ -247,16 +248,12 @@ function edit_post(post) {
             post_body.append(likes_row);
         })
     })
-    edit_buttons_row.append(save_button);
-    
 
     const content_editable = document.createElement('input');
     content_editable.id = `new_content_${post.id}`;
     content_editable.type = "textarea";
     content_editable.className = "form-control col-8";
     content_editable.value = content.innerHTML;
-    
-    
     document.getElementById(`likes_row_${post.id}`).remove();
     document.getElementById(`content_${post.id}`).remove();
     
@@ -273,15 +270,16 @@ function edit_post(post) {
         post_body.append(likes_row);                  
     });
     edit_buttons_row.append(cancel_button);
-    post_body.appendChild(edit_buttons_row);    
+    post_body.appendChild(edit_buttons_row); 
+    edit_buttons_row.append(save_button);   
 }
-
+//force login to like or follow
+function force_login() {
+    document.getElementById('login').click();
+}
+//get cookie to put request
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
   }
-
-function force_login() {
-    document.getElementById('login').click();
-}

@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Social Network{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+    <link href="{% static 'network/styles.css' %}" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     {% block script %}{% endblock %}
+   </head>
+<body>
+  <div class="sidebar">
+    <div class="logo-details">
+        <i class='bx bxl-twitter'></i>
+        <div class="logo_name">Network</div>
+        <i class='bx bx-menu' id="btn" ></i>
+    </div>
+    <ul class="nav-list">
+        <li>
+            <i class='bx bx-search' ></i>
+            <input type="text" placeholder="Search...">
+            <span class="tooltip">Search</span>
+        </li>
+        <li>
+            <a href="{% url 'index' %}">
+            <i class='bx bx-grid-alt'></i>
+            <span class="links_name"> All Post</span>
+            </a>
+        </li>
+        {% if user.is_authenticated %}
+        <li>
+        <a id="following" href="#">
+            <i class='bx bx-user' ></i>
+                <span class="links_name">Following</span>
+        </a>
+        </li>
+        <li>
+            <a href="{% url 'logout' %}">
+            <i class='bx bx-log-out-circle' ></i>
+            <span class="links_name"> Logout</span>
+        </a>
+        </li>
+        {% else %}
+        <li>
+            <a id="login" href="{% url 'login' %}">
+            <i class='bx bx-log-in-circle'></i>
+                <span class="links_name">Log In</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'register' %}">
+            <i class='bx bxs-registered'></i>
+                <span class="links_name"> Register</span>
+            </a>
+        </li>
+        {% endif %}
+        <li class="profile">
+            <div class="profile-details">
+                <div class="name_job">
+                    {% if user.is_authenticated %}
+                        <div class="name" href="#">{{ user.username }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <i class='bx bxs-user' id="user"></i>
+        </li>
+    </ul>
+  </div>
+  <section class="home-section">
+    <div class="body">
+        {% block body %}
+        {% endblock %}
+    </div>
+  </section>
+  <script>
+  let sidebar = document.querySelector(".sidebar");
+  let closeBtn = document.querySelector("#btn");
+  let searchBtn = document.querySelector(".bx-search");
+
+  closeBtn.addEventListener("click", ()=>{
+    sidebar.classList.toggle("open");
+    menuBtnChange();
+  });
+
+  searchBtn.addEventListener("click", ()=>{ 
+    sidebar.classList.toggle("open");
+    menuBtnChange(); 
+  });
+
+  // following are the code to change sidebar button(optional)
+  function menuBtnChange() {
+   if(sidebar.classList.contains("open")){
+     closeBtn.classList.replace("bx-menu", "bx-menu-alt-right");
+   }else {
+     closeBtn.classList.replace("bx-menu-alt-right","bx-menu");
+   }
+  }
+  </script>
+</body>
+</html>

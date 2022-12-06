@@ -3,14 +3,11 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
-
+import json
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from .models import *
 
-from django.contrib.auth.decorators import login_required
-
-import json
-
-from django.core.paginator import Paginator
 
 def index(request):
     return render(request, "network/index.html")
@@ -92,13 +89,7 @@ def save_post(request):
             }, status=400)
     return index(request)
 
-@login_required
-def load_followed_posts(request):
-    followed_profiles = request.user.get_followed_profiles.all()
-    print(followed_profiles)
-    posts = Post.objects.filter(creator__in=followed_profiles).all()
-    return paginated_posts(request,posts)
-
+#render all accounts post registered
 def load_posts(request): 
     profile = request.GET.get("profile", None)
     if (profile):
@@ -107,6 +98,15 @@ def load_posts(request):
         posts = Post.objects.all()     
     return paginated_posts(request,posts)
 
+#render followed users post
+@login_required
+def load_followed_posts(request):
+    followed_profiles = request.user.get_followed_profiles.all()
+    print(followed_profiles)
+    posts = Post.objects.filter(creator__in=followed_profiles).all()
+    return paginated_posts(request,posts)
+
+#limit index 10 post per page
 def paginated_posts(request,posts):
     posts = posts.order_by("-created_date").all()  
     paginator = Paginator(posts,10)
@@ -117,11 +117,12 @@ def paginated_posts(request,posts):
         }
         , safe=False)
 
-
+#Load User profile
 def profile(request,user_id):
     profile = Profile.objects.filter(id=user_id).first()
     return JsonResponse(profile.serialize(request.user),status=200)
 
+#liked or unliked post update
 @login_required 
 def update_like(request,post_id):
     profile = Profile.objects.filter(user=request.user).first()
@@ -135,6 +136,8 @@ def update_like(request,post_id):
     post.save()
     return JsonResponse({"liked": newStatus, "newAmount": post.likes.count()},status=200)
 
+
+#Updated follow or unfollow profile
 @login_required 
 def update_follow(request,profile_id):
     profile = Profile.objects.get(id=profile_id)
@@ -146,3 +149,4 @@ def update_follow(request,profile_id):
         profile.followers.add(request.user)
     profile.save()
     return JsonResponse({"newFollower": newStatus, "newAmount": profile.followers.count()},status=200)
+    

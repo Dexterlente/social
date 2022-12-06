@@ -28,7 +28,7 @@ class Profile(models.Model):
 
 class Post(models.Model):
     content = models.CharField(max_length=280)
-    created_date = models.DateTimeField(default=timezone.now)
+    created_date = models.DateTimeField(auto_now_add=True)
     creator = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="get_all_posts")
     likes = models.ManyToManyField(Profile, blank=True, related_name="get_all_liked_posts")
 
@@ -39,7 +39,7 @@ class Post(models.Model):
             "created_date": self.created_date.strftime("%b %#d %Y, %#I:%M %p"),
             "creator_id": self.creator.id,
             "creator_username": self.creator.user.username,
+            "editable": self.creator.user == user,
             "likes": self.likes.count(),
             "liked": not user.is_anonymous and self in Profile.objects.filter(user=user).first().get_all_liked_posts.all(),
-            "editable": self.creator.user == user
         }
