@@ -1,5 +1,6 @@
-# social
-
+# Social
+A Socialmedia twitter like website using django framework for the backend and vanilla javascript for the frontend
+***
 ### Features
 - `New Post:` Users who are signed in should be able to write a new text-based post by filling in text into a text area and then clicking a button to submit the post.
 - `All Posts:` The “All Posts” link in the navigation bar should take the user to a page where they can see all posts from all users, with the most recent posts first.
